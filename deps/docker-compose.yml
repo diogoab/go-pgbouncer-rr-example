@@ -1,0 +1,39 @@
+version: '3.7'
+services:
+  postgresql-master:
+    image: 'bitnami/postgresql:11'
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=password
+      - POSTGRESQL_DATABASE=example
+      - ALLOW_EMPTY_PASSWORD=yes
+  postgresql-slave:
+    image: 'bitnami/postgresql:11'
+    ports:
+      - '5433:5432'
+    depends_on:
+      - postgresql-master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_MASTER_HOST=postgresql-master
+      - POSTGRESQL_PASSWORD=password
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - ALLOW_EMPTY_PASSWORD=yes
+  pgbouncer-rr:
+    image: 'felipejfc/pgbouncer-rr:0.1'
+    ports:
+      - '5434:5432'
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+    volumes:
+      - type: bind
+        source: ../pgbouncer-rr/etc
+        target: /etc/pgbouncer
